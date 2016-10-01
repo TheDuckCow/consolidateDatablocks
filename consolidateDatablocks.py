@@ -20,6 +20,7 @@ import bpy
 
 
 def consolidateImages(removeold=False):
+	# 2-level structure to hold base name and all images blocks with the same base
 	nameCat = {}
 
 	for im in bpy.data.images:
@@ -35,15 +36,19 @@ def consolidateImages(removeold=False):
 	print(list(nameCat))
 	for base in nameCat:
 		if len(base)<2: continue
-		# loop over every name group
+		
 		nameCat[base].sort() # in-place sorting
 		baseImg = bpy.data.images[ nameCat[base][0] ]
-		#print("Base img is: ",baseImg.name)
 		
 		for imgname in nameCat[base][1:]:
-			#print("remapping:", bpy.data.images[imgname].name, " # ", baseImg.name)
+
+			# skip if fake user set
+			if bpy.data.images[imgname].use_fake_user == True: continue 
+
+			# otherwise, remap
 			remap_users(bpy.data.images[imgname],baseImg)
-			if removeold==True and bpy.data.images[imgname].users==0:
+			old = bpy.data.images[imgname]
+			if removeold==True and old.users==0:
 				bpy.data.images.remove( bpy.data.images[imgname] )
 		
 		# Final step.. rename to not have .001 if it does
@@ -76,11 +81,13 @@ def getBaseName(name):
 
 # todo: write equivalent function of user_remap for older blender versions
 def remap_users(old, new):
-	if bpy.app.version[0]==2 and bpy.app.version[1] < 78:
+	if bpy.app.version[0]>=2 and bpy.app.version[1] >= 78:
+		old.user_remap( new )
+	else:
 		raise ValueError("Error: not available prior to blender 2.78")
 		return
 	
-	old.user_remap( new )
+	
 
 
 # run the main script
