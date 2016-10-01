@@ -1,0 +1,2 @@
+# consolidateDatablocks
+Consolidate blender datablocks
